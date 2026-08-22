@@ -111,7 +111,7 @@ export default function AgendamentoPage() {
       <div className="mx-auto max-w-2xl">
         <header className="mb-8">
           <p className="text-brand font-semibold uppercase tracking-widest text-xs">
-            Studio Ink
+            The Freedom Tattoo
           </p>
           <h1 className="text-3xl font-extrabold mt-1">Agende sua tatuagem</h1>
           <p className="text-slate-400 mt-1">

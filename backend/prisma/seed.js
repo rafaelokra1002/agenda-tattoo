@@ -47,7 +47,7 @@ async function main() {
       depositPercent: 50,
       maxBookingHour: 16,
       pixKey: "",
-      merchantName: "Studio Ink Tattoo",
+      merchantName: "The Freedom Tattoo",
       merchantCity: "Sao Paulo",
     },
   });

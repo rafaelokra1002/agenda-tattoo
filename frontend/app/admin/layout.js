@@ -59,7 +59,7 @@ export default function AdminLayout({ children }) {
       <aside className="hidden md:flex w-60 flex-col border-r border-line bg-panel p-4">
         <div className="px-2 py-3">
           <p className="text-brand font-semibold uppercase tracking-widest text-xs">
-            Studio Ink
+            The Freedom Tattoo
           </p>
           <p className="text-sm text-slate-400">Painel administrativo</p>
         </div>

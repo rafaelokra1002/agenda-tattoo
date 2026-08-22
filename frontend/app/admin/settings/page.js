@@ -97,7 +97,7 @@ export default function SettingsPage() {
                 maxLength={25}
                 value={form.merchantName}
                 onChange={(e) => setForm({ ...form, merchantName: e.target.value })}
-                placeholder="Studio Ink Tattoo"
+                placeholder="The Freedom Tattoo"
               />
               <p className="text-xs text-slate-500 mt-1">Aparece no PIX (máx. 25).</p>
             </div>

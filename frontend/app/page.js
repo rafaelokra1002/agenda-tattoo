@@ -8,7 +8,7 @@ export default function Home() {
       <Backdrop />
       <div className="max-w-xl text-center">
         <p className="text-brand font-semibold tracking-widest uppercase text-sm">
-          Studio Ink
+          The Freedom Tattoo
         </p>
         <h1 className="mt-3 text-4xl md:text-5xl font-extrabold">
           Sua próxima tatuagem começa aqui

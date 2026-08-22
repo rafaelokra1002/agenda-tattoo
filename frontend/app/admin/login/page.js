@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <p className="text-brand font-semibold uppercase tracking-widest text-xs">
-            Studio Ink
+            The Freedom Tattoo
           </p>
           <h1 className="text-2xl font-extrabold mt-1">Painel do Tatuador</h1>
         </div>

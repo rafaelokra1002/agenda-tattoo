@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Studio Ink — Agendamento de Tatuagem",
+  title: "The Freedom Tattoo — Agendamento de Tatuagem",
   description: "Agende sua tatuagem online com pagamento do sinal via PIX.",
 };
 

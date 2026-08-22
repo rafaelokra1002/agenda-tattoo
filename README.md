@@ -1,4 +1,4 @@
-# 🖊️ Studio Ink — Sistema de Agendamento para Tatuador
+# 🖊️ The Freedom Tattoo — Sistema de Agendamento para Tatuador
 
 Sistema completo (SaaS) de agendamento online com **painel administrativo**,
 pagamento de sinal via **PIX** e regras de agenda configuráveis.
