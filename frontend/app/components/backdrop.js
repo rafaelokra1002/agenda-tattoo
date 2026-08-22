@@ -21,15 +21,15 @@ export function Backdrop() {
 
       {/* Foto do tatuador (opcional): coloque frontend/public/hero.jpg */}
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-40 grayscale contrast-125"
-        style={{ backgroundImage: "url('/hero.jpg')" }}
+        className="absolute inset-0 bg-cover opacity-50 grayscale contrast-125"
+        style={{ backgroundImage: "url('/hero.jpg')", backgroundPosition: "left center" }}
       />
-      {/* Escurecimento direcional para o texto ficar legível sobre a foto */}
+      {/* Escurece topo e base (legibilidade), deixando a foto respirar no meio */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, rgba(11,11,15,0.85) 0%, rgba(11,11,15,0.45) 45%, rgba(11,11,15,0.75) 100%)",
+            "linear-gradient(180deg, rgba(11,11,15,0.80) 0%, rgba(11,11,15,0.35) 28%, rgba(11,11,15,0.35) 60%, rgba(11,11,15,0.92) 100%)",
         }}
       />
 
@@ -65,8 +65,6 @@ export function Backdrop() {
         <rect width="100%" height="100%" fill="url(#ink)" />
       </svg>
 
-      {/* Leve vinheta inferior */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/80" />
     </div>
   );
 }
