@@ -31,6 +31,8 @@ export const serviceSchema = z.object({
 export const settingsSchema = z.object({
   depositPercent: z.number().int().min(0).max(100).optional(),
   pixKey: z.string().optional(),
+  merchantName: z.string().max(25).optional(),
+  merchantCity: z.string().max(15).optional(),
   maxBookingHour: z.number().int().min(0).max(23).optional(),
 });
 

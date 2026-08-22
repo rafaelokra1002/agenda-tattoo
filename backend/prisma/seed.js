@@ -46,7 +46,9 @@ async function main() {
       id: "singleton",
       depositPercent: 50,
       maxBookingHour: 16,
-      pixKey: "chave-pix-do-tatuador@email.com",
+      pixKey: "",
+      merchantName: "Studio Ink Tattoo",
+      merchantCity: "Sao Paulo",
     },
   });
   console.log("✅ Configurações criadas");

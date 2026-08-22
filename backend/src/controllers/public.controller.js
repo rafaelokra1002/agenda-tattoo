@@ -6,6 +6,7 @@ import {
   createBooking,
   confirmPayment,
   refreshPaymentStatus,
+  claimPayment,
 } from "../services/booking.service.js";
 import { getPaymentProvider } from "../services/payment.service.js";
 
@@ -70,6 +71,13 @@ export const getBooking = asyncHandler(async (req, res) => {
 export const checkPaymentStatus = asyncHandler(async (req, res) => {
   const booking = await refreshPaymentStatus(req.params.bookingId);
   res.json({ status: booking.status, bookingId: booking.id });
+});
+
+// POST /api/payments/:bookingId/claim -> cliente informa que pagou (PIX estático).
+// Não confirma o agendamento; apenas sinaliza para o admin verificar.
+export const claimPaymentController = asyncHandler(async (req, res) => {
+  await claimPayment(req.params.bookingId);
+  res.json({ ok: true });
 });
 
 // POST /api/payments/:bookingId/confirm -> SIMULAÇÃO (apenas modo "fake").

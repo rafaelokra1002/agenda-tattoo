@@ -108,9 +108,10 @@ model Payment {
   amountCents  Int
 
   // Dados do PIX
-  pixCopiaCola String?       // código copia e cola
-  qrCodeBase64 String?       // imagem do QR em base64 (data URL)
-  externalId   String?       // id do pagamento no provedor
+  pixCopiaCola  String?      // código copia e cola
+  qrCodeBase64  String?      // imagem do QR em base64 (data URL)
+  externalId    String?      // id do pagamento no provedor
+  clientClaimed Boolean      @default(false) // cliente informou que pagou (PIX estático)
 
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -138,7 +139,9 @@ model Admin {
 model Settings {
   id             String   @id @default("singleton")
   depositPercent Int      @default(50)   // % do sinal
-  pixKey         String   @default("")   // chave PIX do tatuador
+  pixKey         String   @default("")   // chave PIX do tatuador (email/telefone/CPF)
+  merchantName   String   @default("")   // nome do recebedor (aparece no PIX)
+  merchantCity   String   @default("")   // cidade do recebedor (aparece no PIX)
   // Só permite agendar até esta hora (regra "só agendar até 16h")
   maxBookingHour Int      @default(16)
   updatedAt      DateTime @updatedAt

@@ -16,6 +16,7 @@ import {
   dashboard,
   listBookings,
   createAdminBooking,
+  confirmBooking,
   cancelBooking,
   rescheduleBooking,
   listClients,
@@ -47,6 +48,7 @@ router.get("/dashboard", dashboard);
 // Agendamentos
 router.get("/bookings", listBookings);
 router.post("/bookings", validate(adminBookingSchema), createAdminBooking);
+router.patch("/bookings/:id/confirm", confirmBooking);
 router.patch("/bookings/:id/cancel", cancelBooking);
 router.patch("/bookings/:id/reschedule", validate(rescheduleSchema), rescheduleBooking);
 

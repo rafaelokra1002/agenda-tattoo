@@ -59,6 +59,8 @@ export async function createBooking({ name, phone, serviceId, date, startTime })
   const charge = await provider.createPixCharge({
     amountCents: depositCents,
     pixKey: settings.pixKey,
+    merchantName: settings.merchantName,
+    merchantCity: settings.merchantCity,
     description: `Sinal ${service.name} - ${date} ${startTime}`,
     externalRef: booking.id,
     payerEmail: undefined,
@@ -67,7 +69,7 @@ export async function createBooking({ name, phone, serviceId, date, startTime })
   const payment = await prisma.payment.create({
     data: {
       bookingId: booking.id,
-      provider: process.env.PAYMENT_PROVIDER || "fake",
+      provider: process.env.PAYMENT_PROVIDER || "pix",
       amountCents: depositCents,
       status: charge.status === "PAID" ? "PAID" : "PENDING",
       pixCopiaCola: charge.pixCopiaCola,
@@ -109,8 +111,25 @@ export async function refreshPaymentStatus(bookingId) {
   return booking;
 }
 
+// Cliente informa que já pagou o PIX estático (não confirma sozinho:
+// o admin verifica o recebimento e confirma no painel).
+export async function claimPayment(bookingId) {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { payment: true },
+  });
+  if (!booking) throw new HttpError(404, "Agendamento não encontrado.");
+  if (booking.payment) {
+    await prisma.payment.update({
+      where: { bookingId },
+      data: { clientClaimed: true },
+    });
+  }
+  return booking;
+}
+
 // Marca o pagamento como pago e confirma o agendamento.
-// (Usado tanto pelo webhook real quanto pela simulação.)
+// (Usado pelo webhook, pela simulação e pela confirmação manual do admin.)
 export async function confirmPayment(bookingId) {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },

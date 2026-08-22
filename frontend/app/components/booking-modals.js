@@ -185,6 +185,18 @@ export function EventModal({ booking, onClose, onChanged }) {
     }
   }
 
+  async function confirmPay() {
+    setBusy(true);
+    try {
+      await api.patch(`/admin/bookings/${booking.id}/confirm`, {}, { auth: true });
+      onChanged();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function saveReschedule() {
     setBusy(true);
     setError("");
@@ -225,8 +237,21 @@ export function EventModal({ booking, onClose, onChanged }) {
             <span className={`badge ${STATUS_STYLE[booking.status]}`}>{STATUS_LABEL[booking.status]}</span>
           </div>
 
+          {booking.status === "PENDING" && booking.payment?.clientClaimed && (
+            <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+              💸 O cliente informou que já fez o PIX. Confira o recebimento e
+              confirme abaixo.
+            </div>
+          )}
+
+          {booking.status === "PENDING" && (
+            <button onClick={confirmPay} disabled={busy} className="btn w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white">
+              {busy ? <Spinner /> : "✓ Confirmar pagamento"}
+            </button>
+          )}
+
           {booking.status !== "CANCELLED" && (
-            <div className="mt-5 flex gap-2">
+            <div className="mt-3 flex gap-2">
               <button onClick={() => setMode("reschedule")} className="btn-ghost flex-1">Remarcar</button>
               <button onClick={cancel} disabled={busy} className="btn flex-1 bg-rose-600 hover:bg-rose-500 text-white">
                 {busy ? <Spinner /> : "Cancelar"}

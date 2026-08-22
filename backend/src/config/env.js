@@ -10,6 +10,7 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET || "dev-secret-change-me",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
 
-  paymentProvider: process.env.PAYMENT_PROVIDER || "fake",
+  // "pix" (estático, padrão) | "mercadopago" | "fake"
+  paymentProvider: process.env.PAYMENT_PROVIDER || "pix",
   mercadopagoToken: process.env.MERCADOPAGO_ACCESS_TOKEN || "",
 };

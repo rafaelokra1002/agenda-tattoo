@@ -13,6 +13,7 @@ function PagamentoInner() {
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [claimed, setClaimed] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Carrega o agendamento + dados do PIX
@@ -58,6 +59,20 @@ function PagamentoInner() {
     try {
       await api.post(`/payments/${bookingId}/confirm`);
       router.replace(`/confirmacao?bookingId=${bookingId}`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setConfirming(false);
+    }
+  }
+
+  // PIX estático: cliente informa que pagou (o studio confirma depois).
+  async function informarPagamento() {
+    setConfirming(true);
+    setError("");
+    try {
+      await api.post(`/payments/${bookingId}/claim`);
+      setClaimed(true);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -145,37 +160,52 @@ function PagamentoInner() {
           </p>
         </div>
 
-        {/* Status / ação */}
+        {/* Status / ação — varia conforme o meio de pagamento */}
         <div className="mt-4 space-y-3">
-          <div className="flex items-center justify-center gap-2 text-sm text-amber-400">
-            <Spinner className="h-4 w-4" /> Aguardando confirmação do pagamento...
-          </div>
-
           {booking.payment?.provider === "fake" ? (
+            // Desenvolvimento: botão de simulação
             <>
-              <button
-                onClick={simularPagamento}
-                disabled={confirming}
-                className="btn-primary w-full"
-              >
-                {confirming ? (
-                  <>
-                    <Spinner /> Confirmando...
-                  </>
-                ) : (
-                  "Já paguei (simular confirmação)"
-                )}
+              <div className="flex items-center justify-center gap-2 text-sm text-amber-400">
+                <Spinner className="h-4 w-4" /> Aguardando confirmação...
+              </div>
+              <button onClick={simularPagamento} disabled={confirming} className="btn-primary w-full">
+                {confirming ? <><Spinner /> Confirmando...</> : "Já paguei (simular confirmação)"}
               </button>
               <p className="text-center text-xs text-slate-500">
-                Modo de teste: este botão simula o pagamento. Em produção, a
-                confirmação do PIX é automática.
+                Modo de teste: este botão simula o pagamento.
               </p>
             </>
-          ) : (
-            <p className="text-center text-xs text-slate-500">
-              Após pagar o PIX, a confirmação aparece automaticamente aqui em
-              alguns segundos. Pode manter esta tela aberta.
+          ) : booking.payment?.provider === "mercadopago" ? (
+            // Mercado Pago: confirmação automática
+            <p className="text-center text-sm text-amber-400 flex items-center justify-center gap-2">
+              <Spinner className="h-4 w-4" /> Assim que o PIX for pago, confirmamos
+              automaticamente.
             </p>
+          ) : claimed ? (
+            // PIX estático: já informou pagamento -> aguardando o studio
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
+              <p className="text-emerald-300 font-medium">
+                ✅ Pagamento informado!
+              </p>
+              <p className="text-xs text-slate-400 mt-1 flex items-center justify-center gap-2">
+                <Spinner className="h-3.5 w-3.5" /> O studio vai confirmar seu
+                horário em breve. Pode manter esta tela aberta.
+              </p>
+            </div>
+          ) : (
+            // PIX estático: aguardando o cliente pagar
+            <>
+              <p className="text-center text-sm text-slate-400">
+                Pague o valor do sinal com o QR ou o código acima. Depois clique
+                no botão abaixo.
+              </p>
+              <button onClick={informarPagamento} disabled={confirming} className="btn-primary w-full">
+                {confirming ? <><Spinner /> Enviando...</> : "Já fiz o pagamento"}
+              </button>
+              <p className="text-center text-xs text-slate-500">
+                O studio confere o recebimento e confirma seu horário.
+              </p>
+            </>
           )}
         </div>
       </div>

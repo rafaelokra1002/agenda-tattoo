@@ -105,6 +105,32 @@ export const createAdminBooking = asyncHandler(async (req, res) => {
   res.status(201).json(booking);
 });
 
+// PATCH /api/admin/bookings/:id/confirm -> confirma o pagamento manualmente.
+// Usado no fluxo de PIX estático: o admin verifica o recebimento e confirma.
+export const confirmBooking = asyncHandler(async (req, res) => {
+  const booking = await prisma.booking.findUnique({
+    where: { id: req.params.id },
+    include: { payment: true },
+  });
+  if (!booking) throw new HttpError(404, "Agendamento não encontrado.");
+
+  const updated = await prisma.$transaction(async (tx) => {
+    if (booking.payment) {
+      await tx.payment.update({
+        where: { bookingId: booking.id },
+        data: { status: "PAID" },
+      });
+    }
+    return tx.booking.update({
+      where: { id: booking.id },
+      data: { status: "CONFIRMED" },
+      include: { client: true, service: true, payment: true },
+    });
+  });
+
+  res.json(updated);
+});
+
 // PATCH /api/admin/bookings/:id/cancel
 export const cancelBooking = asyncHandler(async (req, res) => {
   const booking = await prisma.booking.findUnique({ where: { id: req.params.id } });

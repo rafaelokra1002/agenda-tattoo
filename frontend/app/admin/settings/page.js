@@ -27,6 +27,8 @@ export default function SettingsPage() {
         {
           depositPercent: Number(form.depositPercent),
           pixKey: form.pixKey,
+          merchantName: form.merchantName,
+          merchantCity: form.merchantCity,
           maxBookingHour: Number(form.maxBookingHour),
         },
         { auth: true }
@@ -69,14 +71,48 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div>
-          <label className="label">Chave PIX</label>
-          <input
-            className="input"
-            value={form.pixKey}
-            onChange={(e) => setForm({ ...form, pixKey: e.target.value })}
-            placeholder="email, CPF, telefone ou chave aleatória"
-          />
+        <div className="rounded-xl border border-brand/30 bg-brand/5 p-4 space-y-4">
+          <div className="text-sm font-semibold text-brand">Pagamento PIX</div>
+
+          <div>
+            <label className="label">Chave PIX (email, telefone ou CPF)</label>
+            <input
+              className="input"
+              value={form.pixKey}
+              onChange={(e) => setForm({ ...form, pixKey: e.target.value })}
+              placeholder="ex: seu@email.com  •  +5511999998888  •  12345678900"
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              É a chave onde você recebe. O QR e o &quot;copia e cola&quot; do
+              cliente são gerados a partir dela. Telefone com{" "}
+              <code className="text-slate-300">+55</code> e DDD; CPF só números.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Nome do recebedor</label>
+              <input
+                className="input"
+                maxLength={25}
+                value={form.merchantName}
+                onChange={(e) => setForm({ ...form, merchantName: e.target.value })}
+                placeholder="Studio Ink Tattoo"
+              />
+              <p className="text-xs text-slate-500 mt-1">Aparece no PIX (máx. 25).</p>
+            </div>
+            <div>
+              <label className="label">Cidade</label>
+              <input
+                className="input"
+                maxLength={15}
+                value={form.merchantCity}
+                onChange={(e) => setForm({ ...form, merchantCity: e.target.value })}
+                placeholder="Sao Paulo"
+              />
+              <p className="text-xs text-slate-500 mt-1">Máx. 15 caracteres.</p>
+            </div>
+          </div>
         </div>
 
         <div>
