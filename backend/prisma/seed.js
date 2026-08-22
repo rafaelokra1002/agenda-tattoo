@@ -62,7 +62,8 @@ async function main() {
     update: { passwordHash, name },
     create: { email, passwordHash, name },
   });
-  console.log(`✅ Admin criado: ${email} / ${password}`);
+  // Nunca logar a senha (os logs de deploy podem ser visíveis).
+  console.log(`✅ Admin garantido: ${email}`);
 
   // 3) Serviços (idempotente: recria se não existir pelo nome+tamanho)
   for (const s of services) {
