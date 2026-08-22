@@ -1,0 +1,27 @@
+# Dependências
+node_modules/
+
+# Variáveis de ambiente (contêm segredos)
+.env
+.env.local
+*.local
+
+# Banco de dados local (SQLite)
+*.db
+*.db-journal
+backend/prisma/dev.db
+
+# Build / cache
+.next/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
