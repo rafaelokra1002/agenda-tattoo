@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatBRL, formatDate } from "@/lib/format";
 import { Spinner } from "../components/ui";
+import { Backdrop } from "../components/backdrop";
 
 function ConfirmacaoInner() {
   const params = useSearchParams();
@@ -26,6 +27,7 @@ function ConfirmacaoInner() {
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-10">
+      <Backdrop />
       <div className="max-w-md w-full text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
           <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

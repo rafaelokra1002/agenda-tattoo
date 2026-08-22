@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatBRL } from "@/lib/format";
 import { Spinner, Alert } from "../components/ui";
+import { Backdrop } from "../components/backdrop";
 
 // Data mínima = hoje (não deixa escolher datas passadas)
 const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -106,6 +107,7 @@ export default function AgendamentoPage() {
 
   return (
     <main className="min-h-screen px-4 py-10">
+      <Backdrop />
       <div className="mx-auto max-w-2xl">
         <header className="mb-8">
           <p className="text-brand font-semibold uppercase tracking-widest text-xs">

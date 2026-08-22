@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatBRL, formatDate } from "@/lib/format";
 import { Spinner, Alert } from "../components/ui";
+import { Backdrop } from "../components/backdrop";
 
 function PagamentoInner() {
   const router = useRouter();
@@ -107,6 +108,7 @@ function PagamentoInner() {
 
   return (
     <main className="min-h-screen px-4 py-10">
+      <Backdrop />
       <div className="mx-auto max-w-lg">
         <h1 className="text-3xl font-extrabold">Pagamento do sinal</h1>
         <p className="text-slate-400 mt-1">

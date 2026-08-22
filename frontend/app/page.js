@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { Backdrop } from "./components/backdrop";
 
 // Landing simples que direciona para o agendamento.
 export default function Home() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
+      <Backdrop />
       <div className="max-w-xl text-center">
         <p className="text-brand font-semibold tracking-widest uppercase text-sm">
           Studio Ink
