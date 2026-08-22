@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { formatBRL } from "@/lib/format";
 import { Spinner, Alert } from "../components/ui";
 import { Backdrop } from "../components/backdrop";
+import { Brand } from "../components/brand";
 
 // Data mínima = hoje (não deixa escolher datas passadas)
 const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -110,10 +111,8 @@ export default function AgendamentoPage() {
       <Backdrop />
       <div className="mx-auto max-w-2xl">
         <header className="mb-8">
-          <p className="text-brand font-semibold uppercase tracking-widest text-xs">
-            The Freedom Tattoo
-          </p>
-          <h1 className="text-3xl font-extrabold mt-1">Agende sua tatuagem</h1>
+          <Brand size="md" className="block text-white" />
+          <h1 className="text-3xl font-extrabold mt-2">Agende sua tatuagem</h1>
           <p className="text-slate-400 mt-1">
             Preencha os dados abaixo. O horário é reservado após o pagamento do
             sinal de {settings?.depositPercent ?? 50}%.

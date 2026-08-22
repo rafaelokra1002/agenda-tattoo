@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel+Decorative:wght@700;900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,5 +35,10 @@ body {
   }
   .badge {
     @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium;
+  }
+  /* Wordmark da marca (fonte de estúdio de tatuagem) */
+  .font-brand {
+    font-family: "Cinzel Decorative", "Cinzel", serif;
+    letter-spacing: 0.02em;
   }
 }

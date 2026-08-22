@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Spinner } from "../components/ui";
+import { Brand } from "../components/brand";
 
 const NAV = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "📊" },
@@ -58,10 +59,8 @@ export default function AdminLayout({ children }) {
       {/* Sidebar */}
       <aside className="hidden md:flex w-60 flex-col border-r border-line bg-panel p-4">
         <div className="px-2 py-3">
-          <p className="text-brand font-semibold uppercase tracking-widest text-xs">
-            The Freedom Tattoo
-          </p>
-          <p className="text-sm text-slate-400">Painel administrativo</p>
+          <Brand size="sm" className="block text-white" />
+          <p className="text-sm text-slate-400 mt-1">Painel administrativo</p>
         </div>
         <nav className="mt-4 space-y-1 flex-1">
           {NAV.map((item) => {

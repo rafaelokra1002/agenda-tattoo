@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { Spinner, Alert } from "../../components/ui";
+import { Brand } from "../../components/brand";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -31,10 +32,8 @@ export default function AdminLoginPage() {
     <main className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-          <p className="text-brand font-semibold uppercase tracking-widest text-xs">
-            The Freedom Tattoo
-          </p>
-          <h1 className="text-2xl font-extrabold mt-1">Painel do Tatuador</h1>
+          <Brand size="md" className="block text-white" />
+          <h1 className="text-xl font-extrabold mt-2 text-slate-200">Painel do Tatuador</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="card space-y-4">

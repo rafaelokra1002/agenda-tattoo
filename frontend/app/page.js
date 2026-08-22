@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Backdrop } from "./components/backdrop";
+import { Brand } from "./components/brand";
 
 // Landing simples que direciona para o agendamento.
 export default function Home() {
@@ -7,10 +8,9 @@ export default function Home() {
     <main className="min-h-screen flex items-center justify-center px-4">
       <Backdrop />
       <div className="max-w-xl text-center">
-        <p className="text-brand font-semibold tracking-widest uppercase text-sm">
-          The Freedom Tattoo
-        </p>
-        <h1 className="mt-3 text-4xl md:text-5xl font-extrabold">
+        <Brand size="lg" className="block text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.6)]" />
+        <div className="mx-auto mt-4 h-px w-24 bg-gradient-to-r from-transparent via-brand to-transparent" />
+        <h1 className="mt-5 text-2xl md:text-3xl font-extrabold text-slate-100">
           Sua próxima tatuagem começa aqui
         </h1>
         <p className="mt-4 text-slate-400">
