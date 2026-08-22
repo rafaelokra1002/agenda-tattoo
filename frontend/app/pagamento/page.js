@@ -32,15 +32,16 @@ function PagamentoInner() {
       .catch((e) => setError(e.message));
   }, [bookingId, router]);
 
-  // Faz polling do status a cada 4s (detecta pagamento via webhook real)
+  // Faz polling a cada 4s. O endpoint /status consulta o Mercado Pago em tempo
+  // real e confirma o agendamento assim que o PIX é pago (sem depender de webhook).
   useEffect(() => {
     if (!bookingId) return;
     const timer = setInterval(async () => {
       try {
-        const b = await api.get(`/bookings/${bookingId}`);
-        if (b.status === "CONFIRMED") {
+        const r = await api.get(`/payments/${bookingId}/status`);
+        if (r.status === "CONFIRMED") {
           clearInterval(timer);
-          router.replace(`/confirmacao?bookingId=${b.id}`);
+          router.replace(`/confirmacao?bookingId=${bookingId}`);
         }
       } catch {
         /* silencioso */
@@ -150,23 +151,32 @@ function PagamentoInner() {
             <Spinner className="h-4 w-4" /> Aguardando confirmação do pagamento...
           </div>
 
-          <button
-            onClick={simularPagamento}
-            disabled={confirming}
-            className="btn-primary w-full"
-          >
-            {confirming ? (
-              <>
-                <Spinner /> Confirmando...
-              </>
-            ) : (
-              "Já paguei (simular confirmação)"
-            )}
-          </button>
-          <p className="text-center text-xs text-slate-500">
-            No ambiente de produção com Mercado Pago, a confirmação é automática
-            via webhook. Este botão simula o pagamento em desenvolvimento.
-          </p>
+          {booking.payment?.provider === "fake" ? (
+            <>
+              <button
+                onClick={simularPagamento}
+                disabled={confirming}
+                className="btn-primary w-full"
+              >
+                {confirming ? (
+                  <>
+                    <Spinner /> Confirmando...
+                  </>
+                ) : (
+                  "Já paguei (simular confirmação)"
+                )}
+              </button>
+              <p className="text-center text-xs text-slate-500">
+                Modo de teste: este botão simula o pagamento. Em produção, a
+                confirmação do PIX é automática.
+              </p>
+            </>
+          ) : (
+            <p className="text-center text-xs text-slate-500">
+              Após pagar o PIX, a confirmação aparece automaticamente aqui em
+              alguns segundos. Pode manter esta tela aberta.
+            </p>
+          )}
         </div>
       </div>
     </main>

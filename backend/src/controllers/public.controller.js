@@ -2,7 +2,12 @@
 import { prisma } from "../config/prisma.js";
 import { asyncHandler, HttpError } from "../utils/http.js";
 import { getAvailableSlots, getSettings } from "../services/availability.service.js";
-import { createBooking, confirmPayment } from "../services/booking.service.js";
+import {
+  createBooking,
+  confirmPayment,
+  refreshPaymentStatus,
+} from "../services/booking.service.js";
+import { getPaymentProvider } from "../services/payment.service.js";
 
 // GET /api/services -> lista serviços ativos
 export const listServices = asyncHandler(async (_req, res) => {
@@ -60,19 +65,43 @@ export const getBooking = asyncHandler(async (req, res) => {
   res.json(booking);
 });
 
-// POST /api/payments/:bookingId/confirm -> SIMULAÇÃO de pagamento aprovado.
-// Em produção com Mercado Pago, quem chama isso é o webhook.
+// GET /api/payments/:bookingId/status -> consulta o status real (Mercado Pago)
+// e confirma o agendamento se já estiver pago. Usado pelo polling do frontend.
+export const checkPaymentStatus = asyncHandler(async (req, res) => {
+  const booking = await refreshPaymentStatus(req.params.bookingId);
+  res.json({ status: booking.status, bookingId: booking.id });
+});
+
+// POST /api/payments/:bookingId/confirm -> SIMULAÇÃO (apenas modo "fake").
 export const simulatePayment = asyncHandler(async (req, res) => {
   const booking = await confirmPayment(req.params.bookingId);
   res.json({ status: booking.status, bookingId: booking.id });
 });
 
-// POST /api/payments/webhook -> endpoint do provedor real (Mercado Pago).
+// POST /api/payments/webhook -> notificações do provedor real (Mercado Pago).
+// O MP envia { type: "payment", data: { id } } (ou via query string).
+// Buscamos o pagamento no MP; se aprovado, confirmamos o agendamento.
 export const paymentWebhook = asyncHandler(async (req, res) => {
-  // O Mercado Pago envia { data: { id }, type: "payment" }.
-  // Aqui você buscaria o pagamento pelo externalId e confirmaria.
-  // Mantido simples: aceita { bookingId } para reaproveitar a lógica.
-  const bookingId = req.body?.bookingId;
-  if (bookingId) await confirmPayment(bookingId);
+  // Compatibilidade: aceita { bookingId } direto (útil para testes).
+  if (req.body?.bookingId) {
+    await confirmPayment(req.body.bookingId);
+    return res.sendStatus(200);
+  }
+
+  const type = req.body?.type || req.query?.type;
+  const paymentId =
+    req.body?.data?.id || req.query?.["data.id"] || req.query?.id;
+
+  if (type === "payment" && paymentId) {
+    const provider = getPaymentProvider();
+    const status = await provider.getStatus(String(paymentId));
+    if (status === "PAID") {
+      const payment = await prisma.payment.findFirst({
+        where: { externalId: String(paymentId) },
+      });
+      if (payment) await confirmPayment(payment.bookingId);
+    }
+  }
+  // Sempre 200 para o MP não reenviar indefinidamente.
   res.sendStatus(200);
 });

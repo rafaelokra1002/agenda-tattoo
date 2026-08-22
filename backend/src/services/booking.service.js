@@ -87,6 +87,28 @@ export async function createBooking({ name, phone, serviceId, date, startTime })
   return { booking, payment };
 }
 
+// Consulta o status REAL do pagamento no provedor (Mercado Pago) e,
+// se estiver pago, confirma o agendamento. Usado pelo polling do frontend
+// (funciona mesmo sem webhook — útil enquanto não há HTTPS).
+export async function refreshPaymentStatus(bookingId) {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { payment: true },
+  });
+  if (!booking) throw new HttpError(404, "Agendamento não encontrado.");
+  if (booking.status === "CONFIRMED") return booking;
+
+  const payment = booking.payment;
+  if (payment?.provider === "mercadopago" && payment.externalId) {
+    const provider = getPaymentProvider();
+    const status = await provider.getStatus(payment.externalId);
+    if (status === "PAID") {
+      return confirmPayment(bookingId);
+    }
+  }
+  return booking;
+}
+
 // Marca o pagamento como pago e confirma o agendamento.
 // (Usado tanto pelo webhook real quanto pela simulação.)
 export async function confirmPayment(bookingId) {

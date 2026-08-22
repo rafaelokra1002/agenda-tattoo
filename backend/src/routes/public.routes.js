@@ -8,6 +8,7 @@ import {
   getPublicSettings,
   postBooking,
   getBooking,
+  checkPaymentStatus,
   simulatePayment,
   paymentWebhook,
 } from "../controllers/public.controller.js";
@@ -21,7 +22,8 @@ router.get("/settings/public", getPublicSettings);
 router.post("/bookings", validate(createBookingSchema), postBooking);
 router.get("/bookings/:id", getBooking);
 
-router.post("/payments/:bookingId/confirm", simulatePayment); // simulação PIX
+router.get("/payments/:bookingId/status", checkPaymentStatus); // polling (consulta MP)
+router.post("/payments/:bookingId/confirm", simulatePayment); // simulação PIX (modo fake)
 router.post("/payments/webhook", paymentWebhook); // provedor real
 
 export default router;
