@@ -1,0 +1,59 @@
+# ============================================================
+# Stack completo (Postgres + Backend + Frontend).
+# Uso local:  docker compose up --build
+#   Site:  http://localhost:3000   |   API: http://localhost:4000/api
+#
+# No Coolify, o recomendado é criar recursos separados (ver DEPLOY-COOLIFY.md),
+# mas este arquivo também funciona como recurso "Docker Compose".
+# ============================================================
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tatuagem
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/tatuagem?schema=public"
+      PORT: "4000"
+      NODE_ENV: production
+      CORS_ORIGIN: "http://localhost:3000"
+      JWT_SECRET: "troque-por-uma-chave-forte-em-producao"
+      JWT_EXPIRES_IN: "7d"
+      ADMIN_EMAIL: "admin@tattoo.com"
+      ADMIN_PASSWORD: "admin123"
+      ADMIN_NAME: "Administrador"
+      PAYMENT_PROVIDER: "fake"
+      MERCADOPAGO_ACCESS_TOKEN: ""
+    ports:
+      - "4000:4000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # URL pública da API usada pelo NAVEGADOR (embutida no build).
+        NEXT_PUBLIC_API_URL: "http://localhost:4000/api"
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

@@ -1,0 +1,173 @@
+// ============================================================
+// Prisma Schema — Sistema de Agendamento para Tatuador
+// Banco: PostgreSQL
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// Cliente final que faz o agendamento
+// ------------------------------------------------------------
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String    @unique // celular usado como identificador do cliente
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  bookings  Booking[]
+
+  @@map("clients")
+}
+
+// ------------------------------------------------------------
+// Serviço oferecido (tabela de preços)
+// ------------------------------------------------------------
+model Service {
+  id         String    @id @default(cuid())
+  name       String
+  // Preço guardado em centavos para evitar erros de ponto flutuante
+  priceCents Int
+  // Ex.: "7cm a 10cm", "12cm a 15cm"
+  sizeLabel  String?
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  bookings   Booking[]
+
+  @@map("services")
+}
+
+// ------------------------------------------------------------
+// Agendamento
+// ------------------------------------------------------------
+enum BookingStatus {
+  PENDING   // criado, aguardando pagamento do sinal
+  CONFIRMED // sinal pago
+  CANCELLED // cancelado
+  COMPLETED // atendimento realizado
+}
+
+model Booking {
+  id           String        @id @default(cuid())
+
+  clientId     String
+  client       Client        @relation(fields: [clientId], references: [id])
+
+  serviceId    String
+  service      Service       @relation(fields: [serviceId], references: [id])
+
+  // Data (apenas dia, sem hora) e horário "HH:MM"
+  date         DateTime      @db.Date
+  startTime    String
+
+  status       BookingStatus @default(PENDING)
+
+  // Valores congelados no momento do agendamento (centavos)
+  totalCents   Int
+  depositCents Int
+
+  payment      Payment?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Impede fisicamente dois agendamentos no mesmo dia/horário.
+  // O bloqueio lógico (ignorando cancelados) é feito na camada de serviço.
+  @@index([date, startTime])
+  @@index([status])
+  @@map("bookings")
+}
+
+// ------------------------------------------------------------
+// Pagamento (sinal PIX)
+// ------------------------------------------------------------
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id           String        @id @default(cuid())
+
+  bookingId    String        @unique
+  booking      Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  provider     String        // "fake" | "mercadopago"
+  status       PaymentStatus @default(PENDING)
+  amountCents  Int
+
+  // Dados do PIX
+  pixCopiaCola String?       // código copia e cola
+  qrCodeBase64 String?       // imagem do QR em base64 (data URL)
+  externalId   String?       // id do pagamento no provedor
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+// ------------------------------------------------------------
+// Administrador do painel
+// ------------------------------------------------------------
+model Admin {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+// ------------------------------------------------------------
+// Configurações globais (singleton, id = "singleton")
+// ------------------------------------------------------------
+model Settings {
+  id             String   @id @default("singleton")
+  depositPercent Int      @default(50)   // % do sinal
+  pixKey         String   @default("")   // chave PIX do tatuador
+  // Só permite agendar até esta hora (regra "só agendar até 16h")
+  maxBookingHour Int      @default(16)
+  updatedAt      DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ------------------------------------------------------------
+// Horários de trabalho por dia da semana
+// weekday: 0 = domingo ... 6 = sábado
+// slots: lista de horários "HH:MM" separados por vírgula
+// ------------------------------------------------------------
+model WorkingHours {
+  id      String  @id @default(cuid())
+  weekday Int     @unique
+  enabled Boolean @default(true)
+  slots   String  @default("") // ex.: "08:30,14:30"
+
+  @@map("working_hours")
+}
+
+// ------------------------------------------------------------
+// Datas bloqueadas (feriados, folgas)
+// ------------------------------------------------------------
+model BlockedDate {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@map("blocked_dates")
+}
