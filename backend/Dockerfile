@@ -6,9 +6,10 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Instala dependências (inclui prisma para gerar o client e aplicar o schema)
+# Instala dependências (força incluir devDependencies: o CLI do Prisma está nelas,
+# necessário para gerar o client e aplicar o schema — mesmo com NODE_ENV=production).
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 # Copia o restante do código
 COPY . .
