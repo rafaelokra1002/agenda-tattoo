@@ -75,13 +75,34 @@ export default function AgendamentoPage() {
     ? Math.round((selectedService.priceCents * (settings?.depositPercent ?? 50)) / 100)
     : 0;
 
-  const canSubmit =
-    serviceId && date && time && name.trim().length >= 2 && phone.trim().length >= 8;
+  // Quantidade de dígitos do celular (ignora (), espaços, traços)
+  const phoneDigits = phone.replace(/\D/g, "");
+  const phoneValid = phoneDigits.length >= 10 && phoneDigits.length <= 13;
+  const nameValid = name.trim().length >= 2;
+
+  // Retorna a 1ª pendência do formulário (ou null se tudo ok).
+  function validationError() {
+    if (!serviceId) return "Escolha um serviço.";
+    if (!date) return "Escolha uma data.";
+    if (!time) return "Escolha um horário disponível.";
+    if (!nameValid) return "Informe seu nome completo.";
+    if (!phoneValid)
+      return "Informe um celular válido com DDD (ex.: (11) 99999-9999).";
+    return null;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    if (!canSubmit) return;
+
+    // Bloqueia o avanço se algo estiver incompleto/errado, avisando o quê.
+    const problem = validationError();
+    if (problem) {
+      setError(problem);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await api.post("/bookings", {
@@ -214,20 +235,30 @@ export default function AgendamentoPage() {
               <div>
                 <label className="label">Nome completo</label>
                 <input
-                  className="input"
+                  className={`input ${name && !nameValid ? "border-rose-500" : ""}`}
                   placeholder="Seu nome"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
+                {name && !nameValid && (
+                  <p className="text-xs text-rose-400 mt-1">Digite seu nome completo.</p>
+                )}
               </div>
               <div>
                 <label className="label">Celular (WhatsApp)</label>
                 <input
-                  className="input"
+                  className={`input ${phone && !phoneValid ? "border-rose-500" : ""}`}
+                  type="tel"
+                  inputMode="numeric"
                   placeholder="(11) 99999-9999"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
+                {phone && !phoneValid && (
+                  <p className="text-xs text-rose-400 mt-1">
+                    Celular inválido. Use DDD + número (ex.: (11) 99999-9999).
+                  </p>
+                )}
               </div>
             </div>
           </section>
@@ -247,7 +278,7 @@ export default function AgendamentoPage() {
             </div>
           )}
 
-          <button type="submit" disabled={!canSubmit || submitting} className="btn-primary w-full">
+          <button type="submit" disabled={submitting} className="btn-primary w-full">
             {submitting ? (
               <>
                 <Spinner /> Gerando pagamento...
