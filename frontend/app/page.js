@@ -18,12 +18,9 @@ export default function Home() {
           apenas <span className="text-brand font-semibold">50% de sinal</span>{" "}
           via PIX.
         </p>
-        <div className="mt-8 flex items-center justify-center gap-3">
+        <div className="mt-8 flex items-center justify-center">
           <Link href="/agendamento" className="btn-primary">
             Agendar agora
-          </Link>
-          <Link href="/admin/login" className="btn-ghost">
-            Área do tatuador
           </Link>
         </div>
       </div>
