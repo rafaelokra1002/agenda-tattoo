@@ -25,7 +25,7 @@ export const dashboard = asyncHandler(async (_req, res) => {
     // Próximos horários confirmados a partir de hoje
     prisma.booking.findMany({
       where: { date: { gte: today }, status: { in: ["CONFIRMED", "PENDING"] } },
-      include: { client: true, service: true },
+      include: { client: true, service: true, payment: true },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
       take: 8,
     }),
