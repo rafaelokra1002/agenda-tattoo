@@ -43,9 +43,16 @@ function crc16(payload) {
   return crc.toString(16).toUpperCase().padStart(4, "0");
 }
 
+// Normaliza a chave PIX: remove espaços (nenhum tipo de chave usa espaço).
+// Ex.: "+55 81 99615 0171" -> "+5581996150171". Preserva email/CPF/aleatória.
+export function normalizePixKey(raw) {
+  return String(raw || "").trim().replace(/\s+/g, "");
+}
+
 // Monta o "copia e cola" (BR Code) de um PIX estático com valor fixo.
 export function buildBRCode({ pixKey, merchantName, merchantCity, amountCents, txid }) {
-  const merchantAccount = tlv("26", tlv("00", "br.gov.bcb.pix") + tlv("01", pixKey));
+  const key = normalizePixKey(pixKey);
+  const merchantAccount = tlv("26", tlv("00", "br.gov.bcb.pix") + tlv("01", key));
   const amount = (amountCents / 100).toFixed(2);
   // TxID: alfanumérico, até 25 chars (usa o id do agendamento como referência)
   const reference = (txid || "***").replace(/[^A-Za-z0-9]/g, "").slice(0, 25) || "***";

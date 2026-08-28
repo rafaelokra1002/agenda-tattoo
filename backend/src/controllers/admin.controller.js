@@ -4,6 +4,7 @@
 import { prisma } from "../config/prisma.js";
 import { asyncHandler, HttpError } from "../utils/http.js";
 import { assertSlotBookable, getSettings } from "../services/availability.service.js";
+import { normalizePixKey } from "../services/payment.service.js";
 import { parseDateOnly } from "../utils/date.js";
 
 // ------------------------------------------------------------
@@ -268,9 +269,12 @@ export const getAdminSettings = asyncHandler(async (_req, res) => {
 // PUT /api/admin/settings
 export const updateSettings = asyncHandler(async (req, res) => {
   await getSettings(); // garante que exista
+  const data = { ...req.body };
+  // Limpa a chave PIX (remove espaços) antes de salvar.
+  if (typeof data.pixKey === "string") data.pixKey = normalizePixKey(data.pixKey);
   const settings = await prisma.settings.update({
     where: { id: "singleton" },
-    data: req.body,
+    data,
   });
   res.json(settings);
 });
