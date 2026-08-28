@@ -137,6 +137,9 @@ model Settings {
   merchantCity   String   @default("")   // cidade do recebedor (aparece no PIX)
   // Só permite agendar até esta hora (regra "só agendar até 16h")
   maxBookingHour Int      @default(16)
+  // Minutos que o horário fica reservado aguardando o pagamento do sinal.
+  // Passado esse tempo sem pagar, a vaga é liberada automaticamente.
+  holdMinutes    Int      @default(30)
   updatedAt      DateTime @updatedAt
 
   @@map("settings")

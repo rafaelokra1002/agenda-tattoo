@@ -23,12 +23,27 @@ export async function getSettings() {
   return settings;
 }
 
+// Cancela agendamentos PENDING (aguardando pagamento) que passaram do tempo
+// de reserva (holdMinutes). Isso LIBERA a vaga automaticamente.
+// Chamado de forma "preguiçosa" nas checagens de disponibilidade/criação.
+export async function expireStalePending(holdMinutes) {
+  const minutes = Number(holdMinutes) > 0 ? Number(holdMinutes) : 30;
+  const cutoff = new Date(Date.now() - minutes * 60_000);
+  await prisma.booking.updateMany({
+    where: { status: "PENDING", createdAt: { lt: cutoff } },
+    data: { status: "CANCELLED" },
+  });
+}
+
 // Retorna os horários disponíveis de uma data ("YYYY-MM-DD").
 export async function getAvailableSlots(dateStr) {
   const date = parseDateOnly(dateStr);
   const weekday = weekdayOf(date);
 
   const settings = await getSettings();
+
+  // Libera vagas de PENDING que expiraram antes de calcular a disponibilidade.
+  await expireStalePending(settings.holdMinutes);
 
   // 1) A data está bloqueada? (feriado/folga)
   const blocked = await prisma.blockedDate.findUnique({ where: { date } });

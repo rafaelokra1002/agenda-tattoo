@@ -34,6 +34,7 @@ export const getPublicSettings = asyncHandler(async (_req, res) => {
     depositPercent: s.depositPercent,
     pixKey: s.pixKey,
     maxBookingHour: s.maxBookingHour,
+    holdMinutes: s.holdMinutes,
   });
 });
 

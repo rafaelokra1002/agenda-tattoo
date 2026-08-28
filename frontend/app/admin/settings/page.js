@@ -30,6 +30,7 @@ export default function SettingsPage() {
           merchantName: form.merchantName,
           merchantCity: form.merchantCity,
           maxBookingHour: Number(form.maxBookingHour),
+          holdMinutes: Number(form.holdMinutes),
         },
         { auth: true }
       );
@@ -127,6 +128,22 @@ export default function SettingsPage() {
           />
           <p className="text-xs text-slate-500 mt-1">
             Só serão oferecidos horários até esta hora (ex.: 16 = até 16h).
+          </p>
+        </div>
+
+        <div>
+          <label className="label">Tempo de reserva do horário (minutos)</label>
+          <input
+            type="number"
+            min="5"
+            max="1440"
+            className="input"
+            value={form.holdMinutes}
+            onChange={(e) => setForm({ ...form, holdMinutes: e.target.value })}
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            O horário fica reservado por este tempo aguardando o pagamento. Se
+            não pagar, a vaga é liberada automaticamente (ex.: 30 min).
           </p>
         </div>
 

@@ -1,5 +1,6 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatBRL, formatDate } from "@/lib/format";
@@ -16,23 +17,49 @@ function PagamentoInner() {
   const [confirming, setConfirming] = useState(false);
   const [claimed, setClaimed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [expiresAt, setExpiresAt] = useState(null); // timestamp do fim da reserva
+  const [secondsLeft, setSecondsLeft] = useState(null);
+  const [expired, setExpired] = useState(false);
 
-  // Carrega o agendamento + dados do PIX
+  // Carrega o agendamento + dados do PIX + tempo de reserva
   useEffect(() => {
     if (!bookingId) {
       setError("Agendamento não informado.");
       return;
     }
-    api
-      .get(`/bookings/${bookingId}`)
-      .then((b) => {
+    Promise.all([
+      api.get(`/bookings/${bookingId}`),
+      api.get(`/settings/public`).catch(() => ({ holdMinutes: 30 })),
+    ])
+      .then(([b, cfg]) => {
         setBooking(b);
         if (b.status === "CONFIRMED") {
           router.replace(`/confirmacao?bookingId=${b.id}`);
+          return;
         }
+        if (b.status === "CANCELLED") {
+          setExpired(true);
+          return;
+        }
+        // Fim da reserva = criação + holdMinutes
+        const hold = Number(cfg?.holdMinutes) || 30;
+        setExpiresAt(new Date(b.createdAt).getTime() + hold * 60_000);
       })
       .catch((e) => setError(e.message));
   }, [bookingId, router]);
+
+  // Contador regressivo (atualiza a cada 1s)
+  useEffect(() => {
+    if (!expiresAt) return;
+    const tick = () => {
+      const left = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+      setSecondsLeft(left);
+      if (left === 0) setExpired(true);
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [expiresAt]);
 
   // Faz polling a cada 4s. O endpoint /status consulta o Mercado Pago em tempo
   // real e confirma o agendamento assim que o PIX é pago (sem depender de webhook).
@@ -44,6 +71,9 @@ function PagamentoInner() {
         if (r.status === "CONFIRMED") {
           clearInterval(timer);
           router.replace(`/confirmacao?bookingId=${bookingId}`);
+        } else if (r.status === "CANCELLED") {
+          clearInterval(timer);
+          setExpired(true);
         }
       } catch {
         /* silencioso */
@@ -106,6 +136,31 @@ function PagamentoInner() {
     );
   }
 
+  // Reserva expirada (não pagou a tempo): horário foi liberado.
+  if (expired && booking.status !== "CONFIRMED") {
+    return (
+      <main className="min-h-screen flex items-center justify-center px-4 py-10">
+        <Backdrop />
+        <div className="max-w-md w-full text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-500/15 text-rose-400 text-3xl">
+            ⏰
+          </div>
+          <h1 className="mt-5 text-2xl font-extrabold">Reserva expirada</h1>
+          <p className="text-slate-400 mt-2">
+            O tempo para pagar o sinal acabou e o horário foi liberado. É rápido
+            refazer o agendamento.
+          </p>
+          <Link href="/agendamento" className="btn-primary mt-6 inline-flex">
+            Fazer novo agendamento
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const mm = secondsLeft != null ? String(Math.floor(secondsLeft / 60)).padStart(2, "0") : "--";
+  const ss = secondsLeft != null ? String(secondsLeft % 60).padStart(2, "0") : "--";
+
   return (
     <main className="min-h-screen px-4 py-10">
       <Backdrop />
@@ -114,6 +169,22 @@ function PagamentoInner() {
         <p className="text-slate-400 mt-1">
           Pague via PIX para confirmar seu horário.
         </p>
+
+        {/* Contador de reserva */}
+        {secondsLeft != null && (
+          <div
+            className={`mt-4 flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium ${
+              secondsLeft <= 120
+                ? "border-rose-500/30 bg-rose-500/10 text-rose-300"
+                : "border-amber-500/30 bg-amber-500/10 text-amber-300"
+            }`}
+          >
+            ⏳ Seu horário está reservado por mais{" "}
+            <span className="font-mono font-bold tabular-nums">
+              {mm}:{ss}
+            </span>
+          </div>
+        )}
 
         {error && (
           <div className="mt-4">

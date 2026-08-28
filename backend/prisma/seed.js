@@ -46,6 +46,7 @@ async function main() {
       id: "singleton",
       depositPercent: 50,
       maxBookingHour: 16,
+      holdMinutes: 30,
       pixKey: "",
       merchantName: "The Freedom Tattoo",
       merchantCity: "Sao Paulo",

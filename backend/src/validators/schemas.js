@@ -34,6 +34,7 @@ export const settingsSchema = z.object({
   merchantName: z.string().max(25).optional(),
   merchantCity: z.string().max(15).optional(),
   maxBookingHour: z.number().int().min(0).max(23).optional(),
+  holdMinutes: z.number().int().min(5).max(1440).optional(),
 });
 
 export const workingHoursSchema = z.object({
