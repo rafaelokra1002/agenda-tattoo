@@ -85,16 +85,18 @@ async function main() {
   // Nunca logar a senha (os logs de deploy podem ser visíveis).
   console.log(`✅ Admin garantido: ${email}${forceReset ? " (senha resetada)" : ""}`);
 
-  // 3) Serviços (idempotente: recria se não existir pelo nome+tamanho)
-  for (const s of services) {
-    const existing = await prisma.service.findFirst({
-      where: { name: s.name, sizeLabel: s.sizeLabel },
-    });
-    if (!existing) {
+  // 3) Serviços — só cria os exemplos iniciais se NÃO houver nenhum serviço.
+  // Assim, depois que o tatuador cadastra os próprios serviços, um redeploy
+  // NÃO recria os genéricos (a lista dele é preservada).
+  const serviceCount = await prisma.service.count();
+  if (serviceCount === 0) {
+    for (const s of services) {
       await prisma.service.create({ data: s });
     }
+    console.log(`✅ ${services.length} serviços iniciais criados`);
+  } else {
+    console.log(`✅ ${serviceCount} serviços mantidos (não sobrescreve os seus)`);
   }
-  console.log(`✅ ${services.length} serviços garantidos`);
 
   // 4) Horários da semana
   for (const wh of workingHours) {
