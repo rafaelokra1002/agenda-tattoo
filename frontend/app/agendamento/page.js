@@ -6,6 +6,7 @@ import { formatBRL } from "@/lib/format";
 import { Spinner, Alert } from "../components/ui";
 import { Backdrop } from "../components/backdrop";
 import { Brand } from "../components/brand";
+import { RulesModal } from "../components/rules-modal";
 
 // Data mínima = hoje (não deixa escolher datas passadas)
 const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -31,6 +32,7 @@ export default function AgendamentoPage() {
 
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const selectedService = useMemo(
     () => services.find((s) => s.id === serviceId),
@@ -91,19 +93,23 @@ export default function AgendamentoPage() {
     return null;
   }
 
-  async function handleSubmit(e) {
+  // 1º clique: valida e abre as REGRAS (o PIX só é gerado após aceitar).
+  function handleSubmit(e) {
     e.preventDefault();
     setError("");
-
-    // Bloqueia o avanço se algo estiver incompleto/errado, avisando o quê.
     const problem = validationError();
     if (problem) {
       setError(problem);
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
+    setShowRules(true);
+  }
 
+  // Após aceitar as regras: cria o agendamento e gera o pagamento (QR).
+  async function confirmAndPay() {
     setSubmitting(true);
+    setError("");
     try {
       const res = await api.post("/bookings", {
         name: name.trim(),
@@ -112,10 +118,11 @@ export default function AgendamentoPage() {
         date,
         startTime: time,
       });
-      // Segue para o pagamento do sinal
       router.push(`/pagamento?bookingId=${res.bookingId}`);
     } catch (e) {
       setError(e.message);
+      setShowRules(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       // Se o horário foi tomado, recarrega os slots
       if (e.status === 409 && date) {
         const r = await api.get(`/availability?date=${date}`);
@@ -279,16 +286,18 @@ export default function AgendamentoPage() {
           )}
 
           <button type="submit" disabled={submitting} className="btn-primary w-full">
-            {submitting ? (
-              <>
-                <Spinner /> Gerando pagamento...
-              </>
-            ) : (
-              "Continuar para o pagamento"
-            )}
+            Continuar para o pagamento
           </button>
         </form>
       </div>
+
+      {showRules && (
+        <RulesModal
+          loading={submitting}
+          onClose={() => setShowRules(false)}
+          onAgree={confirmAndPay}
+        />
+      )}
     </main>
   );
 }
