@@ -163,6 +163,28 @@ export const rescheduleBooking = asyncHandler(async (req, res) => {
   res.json(updated);
 });
 
+// POST /api/admin/reset -> apaga os dados transacionais (agendamentos,
+// pagamentos e clientes), preservando a configuração (serviços, horários,
+// chave PIX, admin). Exige { confirm: "RESETAR" } para evitar acidentes.
+export const resetData = asyncHandler(async (req, res) => {
+  if (req.body?.confirm !== "RESETAR") {
+    throw new HttpError(400, 'Confirmação inválida. Envie { "confirm": "RESETAR" }.');
+  }
+  const [payments, bookings, clients] = await prisma.$transaction([
+    prisma.payment.deleteMany({}),
+    prisma.booking.deleteMany({}),
+    prisma.client.deleteMany({}),
+  ]);
+  res.json({
+    ok: true,
+    removed: {
+      pagamentos: payments.count,
+      agendamentos: bookings.count,
+      clientes: clients.count,
+    },
+  });
+});
+
 // ------------------------------------------------------------
 // CLIENTES
 // ------------------------------------------------------------

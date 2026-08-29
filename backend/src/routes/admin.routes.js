@@ -19,6 +19,7 @@ import {
   createAdminBooking,
   confirmBooking,
   cancelBooking,
+  resetData,
   rescheduleBooking,
   listClients,
   listAllServices,
@@ -48,6 +49,9 @@ router.patch("/password", validate(passwordSchema), changePassword);
 
 // Dashboard
 router.get("/dashboard", dashboard);
+
+// Reset dos dados transacionais (mantém configuração)
+router.post("/reset", resetData);
 
 // Agendamentos
 router.get("/bookings", listBookings);
