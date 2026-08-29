@@ -4,6 +4,7 @@ import { requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
 import {
   loginSchema,
+  passwordSchema,
   serviceSchema,
   settingsSchema,
   workingHoursSchema,
@@ -11,7 +12,7 @@ import {
   rescheduleSchema,
   adminBookingSchema,
 } from "../validators/schemas.js";
-import { login, me } from "../controllers/auth.controller.js";
+import { login, me, changePassword } from "../controllers/auth.controller.js";
 import {
   dashboard,
   listBookings,
@@ -41,6 +42,9 @@ router.get("/me", requireAdmin, me);
 
 // A partir daqui, todas exigem admin autenticado.
 router.use(requireAdmin);
+
+// Segurança
+router.patch("/password", validate(passwordSchema), changePassword);
 
 // Dashboard
 router.get("/dashboard", dashboard);

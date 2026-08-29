@@ -22,6 +22,22 @@ export const login = asyncHandler(async (req, res) => {
   });
 });
 
+// PATCH /api/admin/password -> admin troca a própria senha.
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const admin = await prisma.admin.findUnique({ where: { id: req.admin.sub } });
+  if (!admin) throw new HttpError(401, "Sessão inválida.");
+
+  const ok = await bcrypt.compare(currentPassword, admin.passwordHash);
+  if (!ok) throw new HttpError(400, "Senha atual incorreta.");
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.admin.update({ where: { id: admin.id }, data: { passwordHash } });
+
+  res.json({ ok: true });
+});
+
 // GET /api/admin/me -> valida token e devolve o admin logado
 export const me = asyncHandler(async (req, res) => {
   const admin = await prisma.admin.findUnique({

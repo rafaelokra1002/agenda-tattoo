@@ -60,23 +60,30 @@ async function main() {
   const name = process.env.ADMIN_NAME || "Administrador";
   const passwordHash = await bcrypt.hash(password, 10);
 
+  // A senha só é definida na CRIAÇÃO do admin. Em atualizações NÃO mexemos na
+  // senha, para preservar a que o admin definir pelo painel (Redefinir senha).
+  // Exceção: ADMIN_RESET_PASSWORD="true" força resetar a senha para ADMIN_PASSWORD
+  // (útil se esquecer a senha — depois volte a variável para false).
+  const forceReset = process.env.ADMIN_RESET_PASSWORD === "true";
+  const updateData = forceReset ? { name, passwordHash } : { name };
+
   // Se existe exatamente 1 admin com email diferente, RENOMEIA (evita duplicar).
-  // Assim, mudar ADMIN_EMAIL no ambiente troca o email de acesso sem criar 2 contas.
   const admins = await prisma.admin.findMany();
   if (admins.length === 1 && admins[0].email !== email) {
     await prisma.admin.update({
       where: { id: admins[0].id },
-      data: { email, passwordHash, name },
+      data: { email, ...updateData },
     });
   } else {
-    await prisma.admin.upsert({
-      where: { email },
-      update: { passwordHash, name },
-      create: { email, passwordHash, name },
-    });
+    const existing = await prisma.admin.findUnique({ where: { email } });
+    if (existing) {
+      await prisma.admin.update({ where: { email }, data: updateData });
+    } else {
+      await prisma.admin.create({ data: { email, passwordHash, name } });
+    }
   }
   // Nunca logar a senha (os logs de deploy podem ser visíveis).
-  console.log(`✅ Admin garantido: ${email}`);
+  console.log(`✅ Admin garantido: ${email}${forceReset ? " (senha resetada)" : ""}`);
 
   // 3) Serviços (idempotente: recria se não existir pelo nome+tamanho)
   for (const s of services) {

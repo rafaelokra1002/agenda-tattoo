@@ -21,6 +21,11 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Informe a senha."),
 });
 
+export const passwordSchema = z.object({
+  currentPassword: z.string().min(1, "Informe a senha atual."),
+  newPassword: z.string().min(6, "A nova senha precisa de pelo menos 6 caracteres."),
+});
+
 export const serviceSchema = z.object({
   name: z.string().min(2, "Nome muito curto."),
   sizeLabel: z.string().optional().nullable(),

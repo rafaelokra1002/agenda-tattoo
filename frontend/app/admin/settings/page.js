@@ -151,6 +151,88 @@ export default function SettingsPage() {
           {saving ? <Spinner /> : "Salvar configurações"}
         </button>
       </form>
+
+      <PasswordCard />
     </div>
+  );
+}
+
+// Card para o admin redefinir a própria senha.
+function PasswordCard() {
+  const [currentPassword, setCurrent] = useState("");
+  const [newPassword, setNew] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [msg, setMsg] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setMsg("");
+    if (newPassword.length < 6) {
+      setError("A nova senha precisa de pelo menos 6 caracteres.");
+      return;
+    }
+    if (newPassword !== confirm) {
+      setError("A confirmação não confere com a nova senha.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.patch("/admin/password", { currentPassword, newPassword }, { auth: true });
+      setMsg("Senha alterada com sucesso.");
+      setCurrent("");
+      setNew("");
+      setConfirm("");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="card space-y-4">
+      <h2 className="font-semibold">Redefinir senha</h2>
+      {error && <Alert type="error">{error}</Alert>}
+      {msg && <Alert type="success">{msg}</Alert>}
+
+      <div>
+        <label className="label">Senha atual</label>
+        <input
+          type="password"
+          className="input"
+          value={currentPassword}
+          onChange={(e) => setCurrent(e.target.value)}
+          autoComplete="current-password"
+        />
+      </div>
+      <div>
+        <label className="label">Nova senha</label>
+        <input
+          type="password"
+          className="input"
+          value={newPassword}
+          onChange={(e) => setNew(e.target.value)}
+          autoComplete="new-password"
+          placeholder="mínimo 6 caracteres"
+        />
+      </div>
+      <div>
+        <label className="label">Confirmar nova senha</label>
+        <input
+          type="password"
+          className="input"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          autoComplete="new-password"
+        />
+      </div>
+
+      <button type="submit" disabled={saving} className="btn-primary">
+        {saving ? <Spinner /> : "Alterar senha"}
+      </button>
+    </form>
   );
 }
