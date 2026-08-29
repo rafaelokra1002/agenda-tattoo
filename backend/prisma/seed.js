@@ -60,11 +60,21 @@ async function main() {
   const name = process.env.ADMIN_NAME || "Administrador";
   const passwordHash = await bcrypt.hash(password, 10);
 
-  await prisma.admin.upsert({
-    where: { email },
-    update: { passwordHash, name },
-    create: { email, passwordHash, name },
-  });
+  // Se existe exatamente 1 admin com email diferente, RENOMEIA (evita duplicar).
+  // Assim, mudar ADMIN_EMAIL no ambiente troca o email de acesso sem criar 2 contas.
+  const admins = await prisma.admin.findMany();
+  if (admins.length === 1 && admins[0].email !== email) {
+    await prisma.admin.update({
+      where: { id: admins[0].id },
+      data: { email, passwordHash, name },
+    });
+  } else {
+    await prisma.admin.upsert({
+      where: { email },
+      update: { passwordHash, name },
+      create: { email, passwordHash, name },
+    });
+  }
   // Nunca logar a senha (os logs de deploy podem ser visíveis).
   console.log(`✅ Admin garantido: ${email}`);
 
