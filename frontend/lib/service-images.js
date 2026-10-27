@@ -1,3 +1,5 @@
+import { BASE } from "./api";
+
 // Imagens das categorias (arquivos em /public).
 export const SERVICE_IMAGES = [
   "/tatuagem de nome e data.jpeg",
@@ -26,9 +28,11 @@ export function imageLabel(path) {
   return path.replace(/^\//, "").replace(/\.\w+$/, "");
 }
 
-// URL segura (os nomes têm espaços, acentos e vírgulas)
+// URL segura (os nomes têm espaços e acentos). A vírgula fica como está:
+// o servidor do Next não encontra o arquivo se ela vier como "%2C".
 export function imageSrc(path) {
-  return encodeURI(path).replace(/,/g, "%2C");
+  if (/^https?:/.test(path)) return path;
+  return encodeURI(path);
 }
 
 const STOPWORDS = new Set([
@@ -44,10 +48,13 @@ function words(text) {
     .filter((w) => w.length >= 3 && !STOPWORDS.has(w));
 }
 
-// Imagem do serviço: a escolhida no painel ou, se não houver,
+// Imagem do serviço, nesta ordem: a foto enviada pelo painel, a escolhida
+// entre as da pasta /public ou, se não houver,
 // a que tiver mais palavras em comum com o nome do serviço
 // (no empate, a de nome mais curto, ou seja, a mais específica).
 export function serviceImage(service) {
+  if (service.photoAt)
+    return `${BASE}/services/${service.id}/photo?v=${Date.parse(service.photoAt)}`;
   if (service.imageUrl) return service.imageUrl;
   const target = new Set(words(service.name));
   let best = null;
