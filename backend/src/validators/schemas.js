@@ -34,6 +34,13 @@ export const serviceSchema = z.object({
   active: z.boolean().optional(),
 });
 
+export const servicePhotoSchema = z.object({
+  dataUrl: z
+    .string()
+    .max(4_000_000, "Imagem muito grande.")
+    .regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/, "Formato de imagem inválido."),
+});
+
 export const settingsSchema = z.object({
   depositPercent: z.number().int().min(0).max(100).optional(),
   pixKey: z.string().optional(),

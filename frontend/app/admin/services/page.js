@@ -5,13 +5,39 @@ import { formatBRL } from "@/lib/format";
 import { Spinner, Alert } from "../../components/ui";
 import { SERVICE_IMAGES, imageLabel, imageSrc, serviceImage } from "@/lib/service-images";
 
-const emptyForm = { id: null, name: "", sizeLabel: "", price: "", imageUrl: "", active: true };
+const emptyForm = { id: null, name: "", sizeLabel: "", price: "", imageUrl: "", photoAt: null, active: true };
+
+// Reduz a foto no navegador (lado maior até 1200px, JPEG) antes de enviar,
+// para não guardar arquivos enormes no banco.
+function resizeImage(file, maxSide = 1200) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Não foi possível ler essa imagem."));
+    };
+    img.src = url;
+  });
+}
 
 export default function ServicesPage() {
   const [services, setServices] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  // Foto enviada pelo painel: nova (data URL) ou pedido de remoção
+  const [newPhoto, setNewPhoto] = useState(null);
+  const [removePhoto, setRemovePhoto] = useState(false);
 
   async function load() {
     try {
@@ -31,8 +57,11 @@ export default function ServicesPage() {
       sizeLabel: s.sizeLabel || "",
       price: (s.priceCents / 100).toString(),
       imageUrl: s.imageUrl || "",
+      photoAt: s.photoAt,
       active: s.active,
     });
+    setNewPhoto(null);
+    setRemovePhoto(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -48,12 +77,15 @@ export default function ServicesPage() {
       active: form.active,
     };
     try {
-      if (form.id) {
-        await api.put(`/admin/services/${form.id}`, payload, { auth: true });
-      } else {
-        await api.post("/admin/services", payload, { auth: true });
+      const saved = form.id
+        ? await api.put(`/admin/services/${form.id}`, payload, { auth: true })
+        : await api.post("/admin/services", payload, { auth: true });
+      if (newPhoto) {
+        await api.put(`/admin/services/${saved.id}/photo`, { dataUrl: newPhoto }, { auth: true });
+      } else if (removePhoto && form.photoAt) {
+        await api.del(`/admin/services/${saved.id}/photo`, { auth: true });
       }
-      setForm(emptyForm);
+      resetForm();
       load();
     } catch (e) {
       setError(e.message);
@@ -62,8 +94,32 @@ export default function ServicesPage() {
     }
   }
 
+  function resetForm() {
+    setForm(emptyForm);
+    setNewPhoto(null);
+    setRemovePhoto(false);
+  }
+
+  async function pickPhoto(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      setNewPhoto(await resizeImage(file));
+      setRemovePhoto(false);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  // Prévia do que o cliente vai ver depois de salvar
+  const preview =
+    newPhoto ||
+    serviceImage({ ...form, photoAt: removePhoto ? null : form.photoAt });
+  const hasUploadedPhoto = !!newPhoto || (!!form.photoAt && !removePhoto);
+
   async function remove(id) {
-    if (!confirm("Excluir este serviço?")) return;
+    if (!confirm("Excluir esta categoria?")) return;
     try {
       await api.del(`/admin/services/${id}`, { auth: true });
       load();
@@ -74,13 +130,13 @@ export default function ServicesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">Serviços</h1>
+      <h1 className="text-2xl font-extrabold">Categorias</h1>
       {error && <Alert type="error">{error}</Alert>}
 
       {/* Formulário criar/editar */}
       <form onSubmit={save} className="card grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2 font-semibold">
-          {form.id ? "Editar serviço" : "Novo serviço"}
+          {form.id ? "Editar categoria" : "Nova categoria"}
         </div>
         <div>
           <label className="label">Nome</label>
@@ -113,27 +169,56 @@ export default function ServicesPage() {
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="label">Imagem</label>
-          <div className="flex gap-3 items-start">
-            <select
-              className="input"
-              value={form.imageUrl}
-              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-            >
-              <option value="">Automática (pelo nome do serviço)</option>
-              {SERVICE_IMAGES.map((img) => (
-                <option key={img} value={img}>
-                  {imageLabel(img)}
-                </option>
-              ))}
-            </select>
-            {(form.imageUrl || form.name) && serviceImage(form) && (
-              <img
-                src={imageSrc(serviceImage(form))}
-                alt=""
-                className="h-16 w-16 shrink-0 rounded-lg object-cover border border-line"
-              />
-            )}
+          <label className="label">Foto</label>
+          <div className="flex gap-4 items-start">
+            <div className="h-32 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-black">
+              {preview && (
+                <img src={imageSrc(preview)} alt="" className="h-full w-full object-cover" />
+              )}
+            </div>
+            <div className="flex-1 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <label className="btn-ghost cursor-pointer">
+                  {hasUploadedPhoto ? "Trocar foto" : "Enviar foto"}
+                  <input type="file" accept="image/*" className="hidden" onChange={pickPhoto} />
+                </label>
+                {hasUploadedPhoto && (
+                  <button
+                    type="button"
+                    className="btn-ghost text-rose-400"
+                    onClick={() => {
+                      setNewPhoto(null);
+                      setRemovePhoto(true);
+                    }}
+                  >
+                    Remover foto
+                  </button>
+                )}
+              </div>
+              {hasUploadedPhoto ? (
+                <p className="text-xs text-slate-500">
+                  {newPhoto ? "Nova foto — clique em salvar para aplicar." : "Usando a foto enviada."}
+                </p>
+              ) : (
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">
+                    Sem foto enviada. Ou escolha uma das fotos do site:
+                  </p>
+                  <select
+                    className="input"
+                    value={form.imageUrl}
+                    onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                  >
+                    <option value="">Automática (pelo nome do serviço)</option>
+                    {SERVICE_IMAGES.map((img) => (
+                      <option key={img} value={img}>
+                        {imageLabel(img)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-end gap-2">
@@ -148,12 +233,12 @@ export default function ServicesPage() {
         </div>
         <div className="sm:col-span-2 flex gap-2">
           <button type="submit" disabled={saving} className="btn-primary">
-            {saving ? <Spinner /> : form.id ? "Salvar alterações" : "Adicionar serviço"}
+            {saving ? <Spinner /> : form.id ? "Salvar alterações" : "Adicionar categoria"}
           </button>
           {form.id && (
             <button
               type="button"
-              onClick={() => setForm(emptyForm)}
+              onClick={resetForm}
               className="btn-ghost"
             >
               Cancelar
@@ -172,7 +257,7 @@ export default function ServicesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-slate-400 border-b border-line">
-                <th className="py-2 pr-4">Serviço</th>
+                <th className="py-2 pr-4">Categoria</th>
                 <th className="py-2 pr-4">Preço</th>
                 <th className="py-2 pr-4">Status</th>
                 <th className="py-2 pr-4">Ações</th>

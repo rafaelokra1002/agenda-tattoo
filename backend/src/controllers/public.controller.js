@@ -19,6 +19,18 @@ export const listServices = asyncHandler(async (_req, res) => {
   res.json(services);
 });
 
+// GET /api/services/:id/photo -> foto enviada pelo painel
+// A URL leva ?v=<photoAt>, então pode ficar em cache por bastante tempo.
+export const getServicePhoto = asyncHandler(async (req, res) => {
+  const photo = await prisma.servicePhoto.findUnique({
+    where: { serviceId: req.params.id },
+  });
+  if (!photo) throw new HttpError(404, "Foto não encontrada.");
+  res.set("Content-Type", photo.mime);
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
+  res.send(Buffer.from(photo.data, "base64"));
+});
+
 // GET /api/availability?date=YYYY-MM-DD -> horários livres do dia
 export const getAvailability = asyncHandler(async (req, res) => {
   const { date } = req.query;

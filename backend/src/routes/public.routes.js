@@ -4,6 +4,7 @@ import { validate } from "../middleware/validate.js";
 import { createBookingSchema } from "../validators/schemas.js";
 import {
   listServices,
+  getServicePhoto,
   getAvailability,
   getPublicSettings,
   postBooking,
@@ -17,6 +18,7 @@ import {
 const router = Router();
 
 router.get("/services", listServices);
+router.get("/services/:id/photo", getServicePhoto);
 router.get("/availability", getAvailability);
 router.get("/settings/public", getPublicSettings);
 

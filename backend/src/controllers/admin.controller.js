@@ -221,6 +221,34 @@ export const updateService = asyncHandler(async (req, res) => {
   res.json(service);
 });
 
+// PUT /api/admin/services/:id/photo  { dataUrl: "data:image/jpeg;base64,..." }
+export const putServicePhoto = asyncHandler(async (req, res) => {
+  const [, mime, data] = req.body.dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  const serviceId = req.params.id;
+  const exists = await prisma.service.findUnique({ where: { id: serviceId } });
+  if (!exists) throw new HttpError(404, "Serviço não encontrado.");
+  await prisma.servicePhoto.upsert({
+    where: { serviceId },
+    update: { data, mime },
+    create: { serviceId, data, mime },
+  });
+  const service = await prisma.service.update({
+    where: { id: serviceId },
+    data: { photoAt: new Date() },
+  });
+  res.json(service);
+});
+
+// DELETE /api/admin/services/:id/photo
+export const deleteServicePhoto = asyncHandler(async (req, res) => {
+  await prisma.servicePhoto.deleteMany({ where: { serviceId: req.params.id } });
+  const service = await prisma.service.update({
+    where: { id: req.params.id },
+    data: { photoAt: null },
+  });
+  res.json(service);
+});
+
 // DELETE /api/admin/services/:id
 // Se já houver agendamentos, apenas inativa (soft delete) para preservar histórico.
 export const deleteService = asyncHandler(async (req, res) => {

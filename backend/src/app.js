@@ -10,7 +10,8 @@ export function createApp() {
   const app = express();
 
   app.use(cors({ origin: env.corsOrigin, credentials: true }));
-  app.use(express.json());
+  // Limite maior para o envio das fotos das categorias (base64)
+  app.use(express.json({ limit: "5mb" }));
 
   // Healthcheck
   app.get("/api/health", (_req, res) => res.json({ ok: true }));

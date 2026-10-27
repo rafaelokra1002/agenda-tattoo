@@ -6,6 +6,7 @@ import {
   loginSchema,
   passwordSchema,
   serviceSchema,
+  servicePhotoSchema,
   settingsSchema,
   workingHoursSchema,
   blockedDateSchema,
@@ -26,6 +27,8 @@ import {
   createService,
   updateService,
   deleteService,
+  putServicePhoto,
+  deleteServicePhoto,
   listWorkingHours,
   upsertWorkingHours,
   listBlockedDates,
@@ -68,6 +71,8 @@ router.get("/services", listAllServices);
 router.post("/services", validate(serviceSchema), createService);
 router.put("/services/:id", validate(serviceSchema.partial()), updateService);
 router.delete("/services/:id", deleteService);
+router.put("/services/:id/photo", validate(servicePhotoSchema), putServicePhoto);
+router.delete("/services/:id/photo", deleteServicePhoto);
 
 // Horários
 router.get("/working-hours", listWorkingHours);

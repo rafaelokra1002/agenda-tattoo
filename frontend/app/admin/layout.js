@@ -10,7 +10,7 @@ const NAV = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "📊" },
   { href: "/admin/bookings", label: "Agendamentos", icon: "📅" },
   { href: "/admin/clients", label: "Clientes", icon: "👥" },
-  { href: "/admin/services", label: "Serviços", icon: "🖊️" },
+  { href: "/admin/services", label: "Categorias", icon: "🖊️" },
   { href: "/admin/schedule", label: "Horários", icon: "⏰" },
   { href: "/admin/settings", label: "Configurações", icon: "⚙️" },
 ];

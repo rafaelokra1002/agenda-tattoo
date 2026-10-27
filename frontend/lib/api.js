@@ -1,6 +1,6 @@
 // Cliente HTTP central. Adiciona o token do admin quando presente
 // e trata erros de forma consistente.
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+export const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 function getToken() {
   if (typeof window === "undefined") return null;
