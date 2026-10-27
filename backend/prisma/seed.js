@@ -98,15 +98,16 @@ async function main() {
     console.log(`✅ ${serviceCount} serviços mantidos (não sobrescreve os seus)`);
   }
 
-  // 4) Horários da semana
+  // 4) Horários da semana — só cria os dias que ainda não existem.
+  // Um redeploy NÃO sobrescreve os horários ajustados pelo painel.
   for (const wh of workingHours) {
     await prisma.workingHours.upsert({
       where: { weekday: wh.weekday },
-      update: { enabled: wh.enabled, slots: wh.slots },
+      update: {},
       create: wh,
     });
   }
-  console.log("✅ Horários da semana configurados");
+  console.log("✅ Horários da semana garantidos (os do painel são mantidos)");
 
   console.log("🎉 Seed finalizado com sucesso!");
 }
