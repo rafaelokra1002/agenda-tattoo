@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { formatBRL } from "@/lib/format";
 import { Spinner, Alert } from "../../components/ui";
+import { SERVICE_IMAGES, imageLabel, imageSrc, serviceImage } from "@/lib/service-images";
 
-const emptyForm = { id: null, name: "", sizeLabel: "", price: "", active: true };
+const emptyForm = { id: null, name: "", sizeLabel: "", price: "", imageUrl: "", active: true };
 
 export default function ServicesPage() {
   const [services, setServices] = useState(null);
@@ -29,6 +30,7 @@ export default function ServicesPage() {
       name: s.name,
       sizeLabel: s.sizeLabel || "",
       price: (s.priceCents / 100).toString(),
+      imageUrl: s.imageUrl || "",
       active: s.active,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -42,6 +44,7 @@ export default function ServicesPage() {
       name: form.name.trim(),
       sizeLabel: form.sizeLabel.trim() || null,
       priceCents: Math.round(parseFloat(form.price) * 100),
+      imageUrl: form.imageUrl || null,
       active: form.active,
     };
     try {
@@ -109,6 +112,30 @@ export default function ServicesPage() {
             required
           />
         </div>
+        <div className="sm:col-span-2">
+          <label className="label">Imagem</label>
+          <div className="flex gap-3 items-start">
+            <select
+              className="input"
+              value={form.imageUrl}
+              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+            >
+              <option value="">Automática (pelo nome do serviço)</option>
+              {SERVICE_IMAGES.map((img) => (
+                <option key={img} value={img}>
+                  {imageLabel(img)}
+                </option>
+              ))}
+            </select>
+            {(form.imageUrl || form.name) && serviceImage(form) && (
+              <img
+                src={imageSrc(serviceImage(form))}
+                alt=""
+                className="h-16 w-16 shrink-0 rounded-lg object-cover border border-line"
+              />
+            )}
+          </div>
+        </div>
         <div className="flex items-end gap-2">
           <label className="flex items-center gap-2 text-sm text-slate-300">
             <input
@@ -155,10 +182,21 @@ export default function ServicesPage() {
               {services.map((s) => (
                 <tr key={s.id} className="border-b border-line/60">
                   <td className="py-3 pr-4">
+                    <div className="flex items-center gap-3">
+                    {serviceImage(s) && (
+                      <img
+                        src={imageSrc(serviceImage(s))}
+                        alt=""
+                        className="h-10 w-10 shrink-0 rounded-md object-cover"
+                      />
+                    )}
+                    <div>
                     <div className="font-medium">{s.name}</div>
                     {s.sizeLabel && (
                       <div className="text-xs text-slate-500">{s.sizeLabel}</div>
                     )}
+                    </div>
+                    </div>
                   </td>
                   <td className="py-3 pr-4">{formatBRL(s.priceCents)}</td>
                   <td className="py-3 pr-4">

@@ -29,6 +29,7 @@ export const passwordSchema = z.object({
 export const serviceSchema = z.object({
   name: z.string().min(2, "Nome muito curto."),
   sizeLabel: z.string().optional().nullable(),
+  imageUrl: z.string().max(300).optional().nullable(),
   priceCents: z.number().int().positive("Preço deve ser positivo."),
   active: z.boolean().optional(),
 });

@@ -37,6 +37,8 @@ model Service {
   priceCents Int
   // Ex.: "7cm a 10cm", "12cm a 15cm"
   sizeLabel  String?
+  // Caminho da imagem em /public do frontend (ex.: "/Tatuagem na coxa ou joelho.jpeg")
+  imageUrl   String?
   active     Boolean   @default(true)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

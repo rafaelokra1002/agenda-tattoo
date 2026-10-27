@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatBRL } from "@/lib/format";
+import { serviceImage, imageSrc } from "@/lib/service-images";
 import { Spinner, Alert } from "../components/ui";
 import { Backdrop } from "../components/backdrop";
 import { Brand } from "../components/brand";
@@ -163,17 +164,38 @@ export default function AgendamentoPage() {
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-3">
-                {services.map((s) => (
+                {services.map((s) => {
+                  const img = serviceImage(s);
+                  return (
                   <button
                     key={s.id}
                     type="button"
                     onClick={() => setServiceId(s.id)}
-                    className={`text-left rounded-xl border p-4 transition ${
+                    className={`text-left rounded-xl border overflow-hidden transition ${
                       serviceId === s.id
                         ? "border-brand bg-brand/10"
                         : "border-line hover:border-slate-600"
                     }`}
                   >
+                    {img && (
+                      // Foto inteira (contain) sobre um fundo desfocado dela mesma
+                      <div className="relative aspect-[3/4] w-full overflow-hidden bg-black">
+                        <img
+                          src={imageSrc(img)}
+                          alt=""
+                          aria-hidden="true"
+                          loading="lazy"
+                          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl"
+                        />
+                        <img
+                          src={imageSrc(img)}
+                          alt={s.name}
+                          loading="lazy"
+                          className="relative h-full w-full object-contain"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4">
                     <div className="font-medium">{s.name}</div>
                     {s.sizeLabel && (
                       <div className="text-xs text-slate-400">{s.sizeLabel}</div>
@@ -184,8 +206,10 @@ export default function AgendamentoPage() {
                     <p className="mt-1 text-[11px] leading-snug text-slate-500">
                       Valor aproximado, pode variar conforme a tatuagem.
                     </p>
+                    </div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
