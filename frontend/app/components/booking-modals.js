@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { formatBRL, formatDate, STATUS_LABEL, STATUS_STYLE } from "@/lib/format";
+import { confirmationMessage, whatsappLink } from "@/lib/whatsapp";
 import { Spinner, Alert } from "./ui";
 
 // Base de um modal centralizado.
@@ -242,6 +243,17 @@ export function EventModal({ booking, onClose, onChanged }) {
               💸 O cliente informou que já fez o PIX. Confira o recebimento e
               confirme abaixo.
             </div>
+          )}
+
+          {(booking.status === "CONFIRMED" || booking.status === "COMPLETED") && (
+            <a
+              href={whatsappLink(booking.client?.phone, confirmationMessage(booking))}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white"
+            >
+              📲 Enviar confirmação no WhatsApp
+            </a>
           )}
 
           {booking.status === "PENDING" && (
